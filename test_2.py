@@ -17,50 +17,44 @@ chrome_options.add_argument("--headless")
 chrome_driver_path = "D:\Mind-task\crawl_data\crawl_data_csr\chromedriver.exe"
 
 # URL to scrape
+url = "https://www.dice.com/jobs?countryCode=US&radius=30&radiusUnit=mi&page=1&pageSize=100&filters.postedDate=SEVEN&filters.employmentType=FULLTIME&filters.isRemote=true&language=en&eid=S2Q_,Sg_1"
 
 # Initialize the Chrome driver
 service = Service(executable_path=chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # Navigate to the URL
-job_list = []
-for i in range(9):
-  page_index = i + 1
-  print('page index', page_index)
-  url = f"https://www.dice.com/jobs?countryCode=US&radius=30&radiusUnit=mi&page={page_index}&pageSize=100&filters.postedDate=SEVEN&filters.employmentType=FULLTIME&filters.isRemote=true&language=en&eid=S2Q_,Sg_1"
-  print(url)
-  driver.get(url)
+driver.get(url)
 
 
-  # Wait for a few seconds to let the page load (adjust as needed)
-  time.sleep(15)
+# Wait for a few seconds to let the page load (adjust as needed)
+time.sleep(5)
 
-  # Get the page source with the dynamically loaded content
-  page_source = driver.page_source
-  search_card = driver.find_element(By.TAG_NAME, 'dhi-search-cards-widget')
-  hyper_links = search_card.find_elements(By.TAG_NAME, 'h5')
-  print(type(hyper_links), len(hyper_links))
+# Get the page source with the dynamically loaded content
+page_source = driver.page_source
+search_card = driver.find_element(By.TAG_NAME, 'dhi-search-cards-widget')
+hyper_links = search_card.find_elements(By.TAG_NAME, 'h5')
+print(type(hyper_links), len(hyper_links))
 
-  interation = len(hyper_links)
+interation = len(hyper_links)
 
-  
-  # while interation > 0:
-  #get
-  for i in range(interation):
-    print('interate', i) 
-    print('hyper_links', hyper_links[i].text)
-    if hyper_links[i].get_attribute('childElementCount') == '1':
-      print('check')
-      job_id = hyper_links[i].find_element(By.TAG_NAME, 'a').get_attribute('id')
-      job_link = hyper_links[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
-      job_title = hyper_links[i].text
-      job_record = {
-        'job_id': job_id,
-        'job_link': job_link,
-        'job_title': job_title
-      }
-      job_list.append(job_record)
+job_list = []   
+for i in range(interation):
+  print('interate', i) 
+  print('hyper_links', hyper_links[i].text)
+  if hyper_links[i].get_attribute('childElementCount') == '1':
+    print('check')
+    job_id = hyper_links[i].find_element(By.TAG_NAME, 'a').get_attribute('id')
+    job_link = hyper_links[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
+    job_title = hyper_links[i].text
+    job_record = {
+      'job_id': job_id,
+      'job_link': job_link,
+      'job_title': job_title
+    }
+    job_list.append(job_record)
 
+#get salary, company, skills
 job_index = 0
 for job in job_list:
   job_index += 1
@@ -81,13 +75,12 @@ for job in job_list:
   job['job_company'] = job_company
   job['job_salary'] = job_salary
   job['job_skills'] = ', '.join(job_skills_text)
-  
-# # Export to excel
-driver.quit()
-pyexcel.save_as(records=job_list, dest_file_name="job-test.xls")
+ 
+# Export to excel
+pyexcel.save_as(records=job_list, dest_file_name="job.xls")
 
 # Close the browser
-
+driver.quit()
 print('end')
 
 # Parse the page source using BeautifulSoup
